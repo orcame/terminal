@@ -1,12 +1,12 @@
-package "terminal"
+package terminal
 
 type writer interface{
-	color(colorCode string) *writer
-	bcolor(colorCode string)
-	intensity() *writer
-	underline() *writer
-	title(v string) *writer
-	reset() *writer
-	print(v string) * writer
-	nl() *writer
+	Color(colorCode uint) writer
+	Bcolor(colorCode uint) writer
+	Intensity() writer
+	Underline() writer
+	Title(title string) writer
+	Reset() writer
+	Print(str ...interface{}) writer
+	Nl(count ...interface{}) writer
 }
