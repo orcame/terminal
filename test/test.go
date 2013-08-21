@@ -7,6 +7,7 @@ func main() {
 		Intensity().
 		Print("this is a blue string.").
 		Nl(3).
+		Underline().
 		Print("Hello"," ","World").
 		Reset()
 }
