@@ -53,6 +53,10 @@ func (t *writer) Underline() *writer{
 	return t.setStyle('_')
 }
 
+func (t *writer) Bold() *writer{
+	return t.setStyle('!')
+}
+
 func (t *writer) Title(v string) *writer{
 	//todo:set the title.
 	return t

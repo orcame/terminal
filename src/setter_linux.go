@@ -37,7 +37,6 @@ type Setter struct{
 }
 
 func (s *Setter) setStyle(code uint,t *writer){
-	prefix:="\x1b["
 	var style uint=0
 	if code =='i'{
 		if s.fcolor>0{
@@ -56,7 +55,7 @@ func (s *Setter) setStyle(code uint,t *writer){
 		style=f
 	}
 	if style>0{
-		fmt.Fprint(t,prefix+string(style))
+		fmt.Fprint(t,fmt.Sprintf("\033[%dm",style))
 	}
 }
 
