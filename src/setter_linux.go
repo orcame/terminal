@@ -62,7 +62,7 @@ func (s *Setter) setStyle(code uint,t *writer){
 func (s *Setter) resetStyle(t *writer){
 	s.fcolor=0
 	s.bcolor=0
-	fmt.Fprint(t,"\x1b[0m")
+	fmt.Fprint(t,"\033[0m")
 }
 
 func (s *Setter) setTitle(t *writer){
