@@ -27,27 +27,36 @@ var(
 		'i':0x08,	//foreground Intensity
 		'I':0x80,	//background Intensity
 		'_':0x8000,	//underline
-		'!':0x0, 	//bold todo:the bold value is wrong.
+		//'!':0x0, 	//bold todo:the bold value is wrong.
 	}
 )
 
 type Setter struct{
-	style uint
+	attr uint
+	fcolor uint
+	bcolor uint
 }
 
 func (s *Setter) setStyle(code uint,t *writer) {
 	if c,ok:=colorCodes[code];ok{
-		s.style =s.style|c
+		if c < colorCodes['w']{
+			s.fcolor = c
+		}else if c <colorCodes['W']{
+			s.bcolor = c
+		}else {
+			s.attr = s.attr | c
+		}
+		style:=s.attr|s.fcolor|s.bcolor
 		kernel32 := syscall.NewLazyDLL("kernel32.dll")
 		proc := kernel32.NewProc("SetConsoleTextAttribute")
-		handle ,_,_:=proc.Call(t.handle, uintptr(s.style))
+		handle ,_,_:=proc.Call(t.handle, uintptr(style))
 		closeHandle:=kernel32.NewProc("CloseHandle")
 		closeHandle.Call(handle)
 	}
 }
 
 func (s *Setter) resetStyle(t *writer){
-	s.style=0
+	s.attr=0
 	s.setStyle('w',t)
 	s.setStyle('D',t)
 }
