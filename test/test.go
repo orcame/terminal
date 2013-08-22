@@ -3,14 +3,16 @@ package main
 import "../src"
 
 func main() {
-	terminal.Stdout.Color('b').
+	terminal.Stdout.Color('c').
 		Intensity().
 		Bold().
 		Print("this is a blue string.").
 		Nl(3).
 		Color('y').
 		Underline().
-		Print("[yellow]Hello"," ","World").
-		Nl().
-		Reset()
+		Fprint("@{yi}[yellow]Hello"," ","@{ir}World").
+		Nl().Print("hello world.").Nl().Reset()
+
+	//terminal.Stdout.Color('y').Nl().Print("\tThe means of word ").
+		//		Color('c').Print("hello").Color('y').Print(" is:").Nl().Reset()
 }

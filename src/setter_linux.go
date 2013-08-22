@@ -2,6 +2,7 @@ package terminal
 
 import(
 	"fmt"
+	"strings"
 )
 
 var(
@@ -24,45 +25,56 @@ var(
 		'C':46,// # Yellow
 		'W':47,// # White
 
-		'i':0x08,	//foreground Intensity
-		'I':0x80,	//background Intensity
 		'_':4,	//underline
 		'!':1, 	//bold todo:the bold value is wrong.
 	}
 )
 
 type Setter struct{
-	fcolor uint
-	bcolor uint
+	fcolor string
+	bcolor string
+	attr string
+	saved string
+}
+
+func (s *Setter) save(){
+	s.saved=string(s.fcolor)+string(s.bcolor)+s.attr
 }
 
 func (s *Setter) setStyle(code uint,t *writer){
 	var style uint=0
-	if code =='i'{
-		if s.fcolor>0{
-			style=s.fcolor+60;
+	for _,c:=range *codes{
+		if st,ok :=colorCodes[c];ok{
+			sc:=string(c)
+			style=st
+			switch c{
+				case 'd','b''g','r','c','p','y','w':
+					s.fcolor=sc
+				case 'D','B''G','R','C','P','Y','W':
+					s.bcolor=sc
+				default:
+					if c== 'i' || c=='I'{
+						style+=60
+					}
+					if !strings.Contains(s.attr,sc){
+						s.attr=append(s.attr,sc)
+					}
+			}
+			fmt.Fprint(t,fmt.Sprintf("\033[%dm",style))	
 		}
-	}else if code =='I'{
-		if s.bcolor>0{
-			style=s.bcolor+60
-		}
-	}else if f,ok:=colorMap[code];ok{
-		if f>40{
-			s.bcolor=f
-		}else if f>30{
-			s.fcolor=f
-		}
-		style=f
-	}
-	if style>0{
-		fmt.Fprint(t,fmt.Sprintf("\033[%dm",style))
-	}
+	}	
 }
 
 func (s *Setter) resetStyle(t *writer){
-	s.fcolor=0
-	s.bcolor=0
-	fmt.Fprint(t,"\033[0m")
+	s.fcolor=""
+	s.bcolor=""
+	s.attr=""
+	if len(s.saved)!=0{
+		s.setStyle(s.saved,t)
+		s.saved=""
+	}else{
+		fmt.Fprint(t,"\033[0m")
+	}
 }
 
 func (s *Setter) setTitle(t *writer){

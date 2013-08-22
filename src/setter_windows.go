@@ -35,30 +35,48 @@ type Setter struct{
 	attr uint
 	fcolor uint
 	bcolor uint
+	saved uint
 }
 
-func (s *Setter) setStyle(code uint,t *writer) {
-	if c,ok:=colorCodes[code];ok{
-		if c < colorCodes['w']{
-			s.fcolor = c
-		}else if c <colorCodes['W']{
-			s.bcolor = c
-		}else {
-			s.attr = s.attr | c
+func (s *Setter) save(){
+	s.saved = s.attr|s.fcolor|s.bcolor
+}
+
+func (s *Setter) setStyle(codes string,t *writer) {
+	for _,c:=range codes{
+		if st,ok :=colorCodes[uint(c)];ok{
+			switch uint(c) {
+				case 'd','b','g','r','c','p','y','w':
+					s.fcolor=st
+				case 'D','B','G','R','C','P','Y','W':
+					s.bcolor=st
+				default:
+					s.attr=s.attr|st
+			}			
 		}
-		style:=s.attr|s.fcolor|s.bcolor
-		kernel32 := syscall.NewLazyDLL("kernel32.dll")
-		proc := kernel32.NewProc("SetConsoleTextAttribute")
-		handle ,_,_:=proc.Call(t.handle, uintptr(style))
-		closeHandle:=kernel32.NewProc("CloseHandle")
-		closeHandle.Call(handle)
 	}
+	style:=s.attr|s.fcolor|s.bcolor
+	setStyleToConsole(style,t)
+}
+
+func setStyleToConsole(style uint, t *writer){
+	kernel32 := syscall.NewLazyDLL("kernel32.dll")
+	proc := kernel32.NewProc("SetConsoleTextAttribute")
+	handle ,_,_:=proc.Call(t.handle, uintptr(style))
+	closeHandle:=kernel32.NewProc("CloseHandle")
+	closeHandle.Call(handle)
 }
 
 func (s *Setter) resetStyle(t *writer){
-	s.attr=0
-	s.setStyle('w',t)
-	s.setStyle('D',t)
+	if s.saved !=0{
+		setStyleToConsole(s.saved,t)
+		s.saved	=0
+	}else{
+		s.attr=0x0
+		s.fcolor=colorCodes['w']
+		s.bcolor=colorCodes['D']
+		setStyleToConsole(s.attr|s.fcolor|s.bcolor,t)
+	}
 }
 
 func (s *Setter) setTitle(t *writer){

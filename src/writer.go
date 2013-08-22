@@ -3,6 +3,7 @@ package terminal
 import(
 	"fmt"
 	"io"
+	"bytes"
 )
 
 type writer struct{
@@ -21,7 +22,7 @@ func createWriter(w io.Writer,handle uintptr) *writer{
 }
 
 func (t *writer) setStyle(code uint) *writer{
-	t.setter.setStyle(code,t)
+	t.setter.setStyle(string(code),t)
 	return t
 }
 
@@ -82,5 +83,66 @@ func (t *writer) Nl(count ...interface{}) *writer{
 	for i := 0; i < length; i++ {
 		fmt.Fprint(t,"\n")
 	}
+	return t
+}
+
+func (t *writer) complieStyle(input *bytes.Buffer)(style, str *bytes.Buffer){
+	style=bytes.NewBufferString("")
+	str=bytes.NewBufferString("")
+	c,_,err :=input.ReadRune()
+	if err==nil{
+		if uint(c)=='{'{
+			for {
+				c,_,err = input.ReadRune()
+				if err !=nil{
+					style,str=str,style
+					break
+				}
+				if c=='}'{
+					break
+				}else{					
+					style.WriteRune(c)
+				}
+			}
+		}else{
+			str.WriteRune(c)
+		}
+	}
+	return
+}
+
+func (t *writer) Fprint(str ...interface{}) *writer{
+	t.setter.save()
+	for _,s := range str{
+		if v,ok:=s.(string);ok{
+			input:=bytes.NewBufferString(v)
+			buffer:=bytes.NewBufferString("")
+			for {
+				c, _, err := input.ReadRune()
+				if err != nil {
+					break
+				}
+				switch uint(c) {
+					case '@':
+						style,str:=t.complieStyle(input)
+						if style.Len()>=0{							
+							t.Print(buffer.String())
+							buffer.Reset()
+							t.setter.setStyle(style.String(),t)
+						}
+						if str.Len()>0{
+							buffer.Write(str.Bytes())
+						}
+					default:
+						buffer.WriteRune(c)
+				}
+			}
+			if buffer.Len()>0{
+				t.Print(buffer.String())
+				buffer.Reset()
+			}
+		}
+	}
+	t.setter.resetStyle(t)
 	return t
 }
