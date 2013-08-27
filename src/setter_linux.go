@@ -6,7 +6,7 @@ import(
 )
 
 var(
-	colorMap = map[uint]uint{
+	colorCodes = map[uint]uint{
 		'd':30,// Black='\e[0;30m'        # Black
 		'r':31,// Red='\e[0;31m'          # Red
 		'g':32,// Green='\e[0;32m'        # Green
@@ -41,23 +41,23 @@ func (s *Setter) save(){
 	s.saved=string(s.fcolor)+string(s.bcolor)+s.attr
 }
 
-func (s *Setter) setStyle(code uint,t *writer){
+func (s *Setter) setStyle(codes string,t *writer){
 	var style uint=0
-	for _,c:=range *codes{
-		if st,ok :=colorCodes[c];ok{
+	for _,c:=range codes{
+		if st,ok :=colorCodes[uint(c)];ok{
 			sc:=string(c)
 			style=st
 			switch c{
-				case 'd','b''g','r','c','p','y','w':
+				case 'd','b','g','r','c','p','y','w':
 					s.fcolor=sc
-				case 'D','B''G','R','C','P','Y','W':
+				case 'D','B','G','R','C','P','Y','W':
 					s.bcolor=sc
 				default:
 					if c== 'i' || c=='I'{
 						style+=60
 					}
 					if !strings.Contains(s.attr,sc){
-						s.attr=append(s.attr,sc)
+						s.attr=s.attr+sc
 					}
 			}
 			fmt.Fprint(t,fmt.Sprintf("\033[%dm",style))	
